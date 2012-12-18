@@ -705,17 +705,18 @@ class BaseFormField(ATCTContent):
     security.declareProtected(View, 'fgPrimeDefaults')
     def fgPrimeDefaults(self, request, contextObject=None):
         """ primes request with default """
+        value = None
 
         # try and look up the current state
         formFolder = self.formFolderObject()
-        value = formFolder.getExistingValue(self.aq_base)
+        if formFolder.getAllowEditPrevious():
+            value = formFolder.getExistingValue(self.aq_base)
 
         # the field macros will try to get the field value
         # via Field.getEditAccessor. Unfortunately, it looks for it
         # as an attribute of the object, not the field.
         # so, communicate via the request, but don't overwrite
         # what's already there.
-
         if value is None:
             if safe_hasattr(self, 'getFgTDefault') and self.getRawFgTDefault():
                 if contextObject:
