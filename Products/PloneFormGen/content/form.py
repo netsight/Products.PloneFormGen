@@ -663,8 +663,8 @@ class FormFolder(ATFolder):
                                    expires='Wed, 19 Feb 2040 14:28:00 GMT')
         return uniqueid
 
-    security.declareProtected(View, 'hasExistingValue')
-    def hasExistingValues(self, field):
+    security.declareProtected(View, 'hasExistingValues')
+    def hasExistingValues(self):
         userkey = self.getUserKey()
         for adapterId in self.getRawActionAdapter():
             actionAdapter = getattr(self.aq_explicit, adapterId, None)
