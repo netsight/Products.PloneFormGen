@@ -5,3 +5,4 @@ from actionAdapter import IPloneFormGenActionAdapter
 from thanksPage import IPloneFormGenThanksPage
 from exportimport import IFormFolderExportView, IImportSchema, \
     IFormFolderImportView
+from statefulAdapter import IStatefulActionAdapter
