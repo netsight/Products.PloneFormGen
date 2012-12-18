@@ -124,6 +124,19 @@ FormFolderSchema = ATFolderSchema.copy() + Schema((
             """),
             ),
         ),
+    BooleanField('allowEditPrevious',
+        required=False,
+        default=False,
+        widget=BooleanWidget(
+            label=_(u'label_allow_edit_previous', default=u'Allow users to edit their previous submissions'),
+            description=_(u'help_allow_edit_previous', default=u"""
+                Check this to allow users to edit their previous form
+                submission. When a user loads the form it will be pre-filled
+                with any previous submission data. NOTE: this requires a valid
+                'stateful' action adapter to be registered on the form.
+            """),
+            ),
+        ),
     TextField('formPrologue',
         schemata='default',
         required=False,
