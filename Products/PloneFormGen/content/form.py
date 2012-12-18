@@ -675,6 +675,18 @@ class FormFolder(ATFolder):
                                    expires='Wed, 19 Feb 2040 14:28:00 GMT')
         return uniqueid
 
+    security.declareProtected(View, 'hasExistingValue')
+    def hasExistingValues(self, field):
+        userkey = self.getUserKey()
+        for adapterId in self.getRawActionAdapter():
+            actionAdapter = getattr(self.aq_explicit, adapterId, None)
+            try:
+                statefulAdapter = IStatefulActionAdapter(actionAdapter)
+            except TypeError:
+                # does not support state
+                continue
+            return statefulAdapter.hasExistingValues(userkey)
+
     security.declareProtected(View, 'getExistingValue')
     def getExistingValue(self, field):
         userkey = self.getUserKey()
