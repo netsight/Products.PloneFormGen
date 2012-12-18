@@ -36,7 +36,6 @@ from AccessControl import ClassSecurityInfo
 
 from Products.PloneFormGen.content import validationMessages
 from Products.PloneFormGen.interfaces import IPloneFormGenField
-from Products.PloneFormGen.interfaces import IStatefulActionAdapter
 
 from Products.PloneFormGen import PloneFormGenMessageFactory as _
 
@@ -689,20 +688,9 @@ class BaseFormField(ATCTContent):
     def fgPrimeDefaults(self, request, contextObject=None):
         """ primes request with default """
 
-        value = None
-
         # try and look up the current state
         formFolder = self.formFolderObject()
-        for adapterId in formFolder.getRawActionAdapter():
-            actionAdapter = getattr(formFolder.aq_explicit, adapterId, None)
-            try:
-                statefulAdapter = IStatefulActionAdapter(actionAdapter)
-            except TypeError:
-                # does not support state
-                continue
-            value = statefulAdapter.getExistingValue(self.aq_base, request)
-            if value is not None:
-                break
+        value = formFolder.getExistingValue(self.aq_base)
 
         # the field macros will try to get the field value
         # via Field.getEditAccessor. Unfortunately, it looks for it

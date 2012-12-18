@@ -36,6 +36,7 @@ from Products.TALESField import TALESString
 
 from Products.PloneFormGen.interfaces import \
     IPloneFormGenForm, IPloneFormGenActionAdapter, IPloneFormGenThanksPage
+from Products.PloneFormGen.interfaces import IStatefulActionAdapter
 from Products.PloneFormGen.config import \
     PROJECTNAME, \
     EDIT_TALES_PERMISSION, EDIT_ADVANCED_PERMISSION, BAD_IDS
@@ -626,6 +627,24 @@ class FormFolder(ATFolder):
 
         return errors
 
+    security.declareProtected(View, 'getUserKey')
+    def getUserKey(self):
+        """ Get a unique key for the current user """
+        return 'foo'
+
+    security.declareProtected(View, 'getExistingValue')
+    def getExistingValue(self, field):
+        userkey = self.getUserKey()
+        for adapterId in self.getRawActionAdapter():
+            actionAdapter = getattr(self.aq_explicit, adapterId, None)
+            try:
+                statefulAdapter = IStatefulActionAdapter(actionAdapter)
+            except TypeError:
+                # does not support state
+                continue
+            value = statefulAdapter.getExistingValue(field, userkey)
+            if value is not None:
+                return value
 
     security.declareProtected(View, 'fgGetSuccessAction')
 
