@@ -675,6 +675,9 @@ class FormFolder(ATFolder):
                 continue
             value = statefulAdapter.getExistingValue(field, userkey)
             if value is not None:
+                if isinstance(value, unicode):
+                    # pfg doesn't want unicode, thanks
+                    value = value.encode('utf-8')
                 return value
 
     security.declareProtected(View, 'fgGetSuccessAction')
