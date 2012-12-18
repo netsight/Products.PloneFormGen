@@ -4,6 +4,7 @@ __author__ = 'Steve McMahon <steve@dcn.org>'
 __docformat__ = 'plaintext'
 
 import logging
+import time
 import transaction
 
 from zope.interface import implements
@@ -49,6 +50,7 @@ from types import StringTypes
 import zope.i18n
 
 logger = logging.getLogger("PloneFormGen")
+USER_COOKIE_NAME = 'pfg_stateful_uniqueid'
 
 FormFolderSchema = ATFolderSchema.copy() + Schema((
     StringField('submitLabel',
@@ -642,7 +644,23 @@ class FormFolder(ATFolder):
     security.declareProtected(View, 'getUserKey')
     def getUserKey(self):
         """ Get a unique key for the current user """
-        return 'foo'
+        request = self.REQUEST
+        portal_membership = getToolByName(self, 'portal_membership')
+        isAnon = portal_membership.isAnonymousUser()
+        if not isAnon:
+            member = portal_membership.getAuthenticatedMember()
+            return member.getId()
+
+        # See if we have a uniqueid already
+        if USER_COOKIE_NAME in request:
+            return request.get(USER_COOKIE_NAME)
+
+        # If not, create one and stick in a cookie
+        uniqueid = str(time.time())
+        request.set(USER_COOKIE_NAME, uniqueid)
+        request.RESPONSE.setCookie(USER_COOKIE_NAME, uniqueid,
+                                   expires='Wed, 19 Feb 2040 14:28:00 GMT')
+        return uniqueid
 
     security.declareProtected(View, 'getExistingValue')
     def getExistingValue(self, field):
