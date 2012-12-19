@@ -665,8 +665,8 @@ class FormFolder(ATFolder):
             return member.getId()
 
         # See if we have a uniqueid already
-        if USER_COOKIE_NAME in request:
-            return request.get(USER_COOKIE_NAME)
+        if USER_COOKIE_NAME in request.cookies:
+            return request.cookies.get(USER_COOKIE_NAME)
 
         # If not, create one and stick in a cookie
         uniqueid = str(time.time())
