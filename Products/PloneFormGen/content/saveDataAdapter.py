@@ -4,8 +4,11 @@ __author__  = 'Steve McMahon <steve@dcn.org>'
 __docformat__ = 'plaintext'
 
 from AccessControl import ClassSecurityInfo
+from AccessControl import getSecurityManager
+from AccessControl import Unauthorized
 
 from BTrees.IOBTree import IOBTree
+from BTrees.OOBTree import OOBTree
 try:
     from BTrees.LOBTree import LOBTree
     SavedDataBTree = LOBTree
@@ -14,11 +17,12 @@ except ImportError:
 from BTrees.Length import Length
 
 from zope.contenttype import guess_content_type
+from zope.interface import implements
 
 import plone.protect
 
 from Products.CMFCore.utils import getToolByName
-from Products.CMFCore.permissions import ModifyPortalContent
+from Products.CMFCore.permissions import ModifyPortalContent, View
 from Products.CMFPlone.utils import base_hasattr, safe_hasattr
 
 from Products.Archetypes.public import *
@@ -30,6 +34,7 @@ from Products.PloneFormGen import PloneFormGenMessageFactory as _
 from Products.PloneFormGen.config import *
 from Products.PloneFormGen.content.actionAdapter import \
     FormActionAdapter, FormAdapterSchema
+from Products.PloneFormGen.interfaces import IStatefulActionAdapter
 
 import logging
 import time
@@ -39,14 +44,14 @@ import csv
 from StringIO import StringIO
 from types import StringTypes
 
-logger = logging.getLogger("PloneFormGen")    
+logger = logging.getLogger("PloneFormGen")
 
 
 ExLinesField = LinesField
 
 
 class FormSaveDataAdapter(FormActionAdapter):
-    """A form action adapter that will save form input data and 
+    """A form action adapter that will save form input data and
        return it in csv- or tab-delimited format."""
 
     schema = FormAdapterSchema.copy() + Schema((
@@ -106,6 +111,7 @@ class FormSaveDataAdapter(FormActionAdapter):
 
     schema.moveField('execCondition', pos='bottom')
 
+    implements(IStatefulActionAdapter)
     meta_type      = 'FormSaveDataAdapter'
     portal_type    = 'FormSaveDataAdapter'
     archetype_name = 'Save Data Adapter'
@@ -146,6 +152,9 @@ class FormSaveDataAdapter(FormActionAdapter):
                 self._inputItems = i
                 self._length.set(i)
 
+        # make sure we have storage for user mapping
+        if not base_hasattr(self, '_userMapping'):
+            self._userMapping = OOBTree()
 
     security.declareProtected(DOWNLOAD_SAVED_PERMISSION, 'getSavedFormInput')
     def getSavedFormInput(self):
@@ -213,7 +222,7 @@ class FormSaveDataAdapter(FormActionAdapter):
     security.declareProtected(ModifyPortalContent, 'clearSavedFormInput')
     def clearSavedFormInput(self, **kwargs):
         """ convenience method to clear input buffer """
-        
+
         REQUEST = kwargs.get('request', self.REQUEST)
         if REQUEST.form.has_key('clearSavedFormInput'):
             # we're processing a request from the web;
@@ -234,7 +243,7 @@ class FormSaveDataAdapter(FormActionAdapter):
         lst =  [field.replace('\r','').replace('\n', r'\n') for field in self._inputStorage[id]]
         return lst
 
- 
+
     security.declareProtected(ModifyPortalContent, 'manage_saveData')
     def manage_saveData(self, id,  data):
         """ Save the data for record with 'id' """
@@ -244,7 +253,7 @@ class FormSaveDataAdapter(FormActionAdapter):
         lst = list()
         for i in range(0, len(self.getColumnNames())):
             lst.append(getattr(data, 'item-%d' % i, '').replace(r'\n', '\n'))
- 
+
         self._inputStorage[id] = lst
         self.REQUEST.RESPONSE.redirect(self.absolute_url() + '/view')
 
@@ -258,9 +267,38 @@ class FormSaveDataAdapter(FormActionAdapter):
         del self._inputStorage[id]
         self._inputItems -= 1
         self._length.change(-1)
-        
+
         self.REQUEST.RESPONSE.redirect(self.absolute_url() + '/view')
 
+    security.declareProtected(View, 'checkUserKey')
+    def checkUserKey(self, userkey):
+        """ require the 'download saved' permission to access
+            data for userkeys other than your own """
+        if userkey == self.getUserKey():
+            return
+        sm = getSecurityManager()
+        if not sm.checkPermission(DOWNLOAD_SAVED_PERMISSION, self):
+            raise Unauthorized("You do not have permission to download this form data")
+
+    security.declareProtected(View, 'getExistingValueFor')
+    def getExistingValueFor(self, field, userkey):
+        self.checkUserKey(userkey)
+        columns = self.getColumnNames()
+        if field.getId() not in columns:
+            return None
+        usermapping = getattr(self, '_userMapping', {})
+        try:
+            id = usermapping[userkey]
+        except KeyError:
+            return None
+        row = self._inputStorage[id]
+        return row[columns.index(field.getId())]
+
+    security.declareProtected(View, 'hasExistingValuesFor')
+    def hasExistingValuesFor(self, userkey):
+        self.checkUserKey(userkey)
+        usermapping = getattr(self, '_userMapping', {})
+        return userkey in usermapping
 
     def _addDataRow(self, value):
 
@@ -279,14 +317,18 @@ class FormSaveDataAdapter(FormActionAdapter):
         self._inputStorage[id] = value
         self._length.change(1)
 
+        if self.getAllowEditPrevious():
+            # store reference to this row
+            userkey = self.getUserKey()
+            self._userMapping[userkey] = id
 
     security.declareProtected(ModifyPortalContent, 'addDataRow')
     def addDataRow(self, value):
         """ a wrapper for the _addDataRow method """
-        
+
         self._addDataRow(value)
 
-    
+
     def onSuccess(self, fields, REQUEST=None, loopstop=False):
         """
         saves data.
@@ -358,26 +400,26 @@ class FormSaveDataAdapter(FormActionAdapter):
     security.declareProtected(DOWNLOAD_SAVED_PERMISSION, 'getColumnNames')
     def getColumnNames(self):
         """Returns a list of column names"""
-        
+
         showFields = getattr(self, 'showFields', [])
         names = [field.getName() for field in self.fgFields(displayOnly=True)
                  if not showFields or field.getName() in showFields]
         for f in self.ExtraData:
             names.append(f)
-        
+
         return names
-        
+
 
     security.declareProtected(DOWNLOAD_SAVED_PERMISSION, 'getColumnTitles')
     def getColumnTitles(self):
         """Returns a list of column titles"""
-        
+
         names = [field.widget.label for field in self.fgFields(displayOnly=True)]
         for f in self.ExtraData:
             names.append(self.vocabExtraDataDL().getValue(f, ''))
-        
+
         return names
-        
+
 
     def _cleanInputForTSV(self, value):
         # make data safe to store in tab-delimited format
@@ -452,7 +494,7 @@ class FormSaveDataAdapter(FormActionAdapter):
             returns a dict of colname:column. This is a convenience method
             used in the record view.
         """
-    
+
         colcount = len(cols)
 
         rdict = {}
@@ -473,7 +515,7 @@ class FormSaveDataAdapter(FormActionAdapter):
 
         for row in self.getSavedFormInput():
             yield self.rowAsColDict(row, cols)
-        
+
 
     # alias for old mis-naming
     security.declareProtected(DOWNLOAD_SAVED_PERMISSION, 'InputAsDictionaries')
@@ -491,15 +533,15 @@ class FormSaveDataAdapter(FormActionAdapter):
         else:
             assert format == 'csv', 'Unknown download format'
             return 'text/comma-separated-values'
-    
+
     security.declarePrivate('csvDelimiter')
     def csvDelimiter(self):
-    
+
         """Delimiter character for CSV downloads
         """
         fgt = getToolByName(self, 'formgen_tool')
         return fgt.getCSVDelimiter()
-    
+
     security.declareProtected(DOWNLOAD_SAVED_PERMISSION, 'itemsSaved')
     def itemsSaved(self):
         """Download the saved data
