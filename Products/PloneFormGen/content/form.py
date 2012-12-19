@@ -677,7 +677,7 @@ class FormFolder(ATFolder):
 
     security.declareProtected(View, 'hasExistingValues')
     def hasExistingValues(self):
-        userkey = self.getUserKey()
+        """ has the current user previously submitted this form? """
         for adapterId in self.getRawActionAdapter():
             actionAdapter = getattr(self.aq_explicit, adapterId, None)
             try:
@@ -685,11 +685,11 @@ class FormFolder(ATFolder):
             except TypeError:
                 # does not support state
                 continue
-            return statefulAdapter.hasExistingValues(userkey)
+            return statefulAdapter.hasExistingValuesFor(self.getUserKey())
 
     security.declareProtected(View, 'getExistingValue')
     def getExistingValue(self, field):
-        userkey = self.getUserKey()
+        """ get a previous submission value for the given field """
         for adapterId in self.getRawActionAdapter():
             actionAdapter = getattr(self.aq_explicit, adapterId, None)
             try:
@@ -697,7 +697,10 @@ class FormFolder(ATFolder):
             except TypeError:
                 # does not support state
                 continue
-            value = statefulAdapter.getExistingValue(field, userkey)
+            value = statefulAdapter.getExistingValueFor(
+                field,
+                self.getUserKey(),
+            )
             if value is not None:
                 if isinstance(value, unicode):
                     # pfg doesn't want unicode, thanks

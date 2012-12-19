@@ -6,11 +6,16 @@ import os, sys
 if __name__ == '__main__':
     execfile(os.path.join(sys.path[0], 'framework.py'))
 
+from AccessControl import Unauthorized
+from zope.interface.verify import verifyObject
+from zope.interface.verify import verifyClass
 from ZPublisher.HTTPRequest import HTTPRequest
 from ZPublisher.HTTPResponse import HTTPResponse
 import zExceptions
 
 from Products.PloneFormGen.tests import pfgtc
+from Products.PloneFormGen.interfaces import IStatefulActionAdapter
+from Products.PloneFormGen.content.saveDataAdapter import FormSaveDataAdapter
 
 from Products.CMFCore.utils import getToolByName
 import plone.protect
@@ -18,6 +23,7 @@ import plone.protect
 # dummy class
 class cd:
     pass
+
 
 def FakeRequest(method="GET", add_auth=False, **kwargs):
     environ = {}
@@ -383,7 +389,55 @@ class TestFunctions(pfgtc.PloneFormGenTestCase):
         self.assertEqual(row[0], 'test subject')
         self.assertEqual(row[1], 'test comments')
 
-    # the csrf test has moved to browser.txt
+    def testStateful(self):
+        """ test stateful support """
+
+        # create a saver and add a record
+        self.ff1.invokeFactory('FormSaveDataAdapter', 'saver')
+        saver = self.ff1.saver
+        self.ff1.setActionAdapter(['saver',])
+
+        # make sure we fit the interface
+        self.assertTrue(IStatefulActionAdapter.providedBy(saver))
+        self.assertTrue(verifyClass(IStatefulActionAdapter, FormSaveDataAdapter))
+        self.assertTrue(verifyObject(IStatefulActionAdapter, saver))
+
+        # enable editing of submissions
+        self.ff1.setAllowEditPrevious(True)
+
+        # no data to start with
+        self.assertFalse(self.ff1.hasExistingValues())
+        self.assertFalse(self.ff1.getExistingValue(self.ff1.topic))
+
+        request = FakeRequest(topic='test subject',
+                              replyto='test@test.org',
+                              comments='test comments')
+        errors = self.ff1.fgvalidate(REQUEST=request)
+        self.assertEqual(errors, {})
+
+        self.assertTrue(self.ff1.hasExistingValues())
+        self.assertEquals(self.ff1.getExistingValue(self.ff1.topic),
+                          'test subject')
+
+        # should also be able to directly query the saver
+        userkey = self.ff1.getUserKey()
+        self.assertTrue(saver.hasExistingValuesFor(userkey))
+        self.assertEquals(saver.getExistingValueFor(self.ff1.replyto, userkey),
+                          'test@test.org')
+
+        self.logout()
+
+        # fake user key - should not access to this
+        userkey = '_fake_user_key_notused'
+        self.assertRaises(Unauthorized,
+                          saver.hasExistingValuesFor,
+                          userkey)
+        self.assertRaises(Unauthorized,
+                          saver.getExistingValueFor,
+                          self.ff1.topic,
+                          userkey)
+
+# the csrf test has moved to browser.txt
 
 def test_suite():
     from unittest import TestSuite, makeSuite
