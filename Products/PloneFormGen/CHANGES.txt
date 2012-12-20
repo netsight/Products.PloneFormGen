@@ -1,6 +1,11 @@
 Change History
 ==============
 
+1.8dev 2012-12-20
+----------------
+
+- Support for editing previous submission values (via 'Stateful' adapters)
+
 1.7.6 2012-12-06
 ----------------
 
