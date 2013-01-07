@@ -44,6 +44,14 @@ if errors:
             message = 'Please correct the indicated errors.'
         return state.set(status='failure', errors=errors, portal_status_message=message)
 else:
+    # if using the 'finalise' workflow, redirect back to form
+    # unless we clicked 'finalise'
+    if context.getUseFinaliseButton() and 'form_finalise' not in request:
+        message=_(u'Changes saved.')
+        addStatusMessage(request, message)
+        state.setNextAction('traverse_to:string:fg_base_view_p3')
+        return state
+
     nextAction = context.fgGetSuccessAction()
     state.setNextAction( nextAction )
 

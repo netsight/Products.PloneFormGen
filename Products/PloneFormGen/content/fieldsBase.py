@@ -586,6 +586,7 @@ class BaseFormField(ATCTContent):
             'language',
             'form',
             'form_submit',
+            'form_finalise',
             'fieldset',
             'last_referer',
             'add_reference',
