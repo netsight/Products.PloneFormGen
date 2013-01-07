@@ -9,3 +9,6 @@ class IStatefulActionAdapter(Interface):
 
     def getExistingValueFor(field, userkey):
         """ retrieve any existing value for the given userkey and field"""
+
+    def isFinalised(userkey):
+        """ has the given user's submission been finalised? (no longer editable)"""
