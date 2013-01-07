@@ -103,10 +103,13 @@
               <metal:use_body use-macro="body_macro" />
             </tal:form>
             <tal:finalised condition="finalised">
-              <p><em i18n:translate="pfg_form_finalised_text">
+              <p tal:condition="not:here/getFinalisedText">
+                <em i18n:translate="pfg_form_finalised_text">
                   You have already completed this form.
                 </em>
               </p>
+              <p tal:condition="here/getFinalisedText"
+                 tal:content="structure here/getFinalisedText" />
             </tal:finalised>
 
         <tal:if tal:condition="here/getFormEpilogue | nothing">
