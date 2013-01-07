@@ -680,6 +680,27 @@ class FormFolder(ATFolder):
 
         return errors
 
+    security.declareProtected(View, 'useFinaliseWorkflow')
+    def useFinaliseWorkflow(self):
+        """ is the finalise workflow enabled on this form? """
+        return self.getUseFinaliseButton()
+
+    security.declareProtected(View, 'isFormFinalised')
+    def isFormFinalised(self):
+        """ has the current user's submission been finalised
+        (and therefore no longer editable) """
+        if not self.useFinaliseWorkflow():
+            return False
+        # ask the stateful adapters
+        for adapterId in self.getRawActionAdapter():
+            actionAdapter = getattr(self.aq_explicit, adapterId, None)
+            try:
+                statefulAdapter = IStatefulActionAdapter(actionAdapter)
+            except TypeError:
+                # does not support state
+                continue
+            return statefulAdapter.isFinalised(self.getUserKey())
+
     security.declareProtected(View, 'getUserKey')
     def getUserKey(self):
         """ Get a unique key for the current user """
