@@ -662,6 +662,14 @@ class FormFolder(ATFolder):
                     self.toggleActionActive(adapter)
                 else:
                     # Now, see if we should execute it.
+                    # If using the 'finalise' workflow, only trigger
+                    # 'save data' adapters
+                    if self.getUseFinaliseButton() \
+                        and 'form_finalise' not in REQUEST:
+                        if not IStatefulActionAdapter.providedBy(actionAdapter):
+                            # skip it
+                            continue
+
                     # Check to see if execCondition exists and has contents
                     if safe_hasattr(actionAdapter, 'execCondition') and \
                       len(actionAdapter.getRawExecCondition()):
