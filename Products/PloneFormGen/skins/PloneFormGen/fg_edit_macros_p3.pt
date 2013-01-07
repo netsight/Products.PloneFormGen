@@ -200,7 +200,7 @@
                    tal:attributes="value python:(last_referer and '%s/%s' % (here.absolute_url(), template.id) not in last_referer) and last_referer or (here.getParentNode() and here.getParentNode().absolute_url())"
                    />
 
- 
+
             <input tal:replace="structure context/@@authenticator/authenticator">
 
 
@@ -228,6 +228,13 @@
                        value="Save"
                        tal:attributes="value python:getattr(here,'submitLabel','Submit')"
                        />
+                <input class="context"
+                       type="submit"
+                       name="form_finalise"
+                       value="Finalise"
+                       tal:condition="python: getattr(here,'useFinaliseButton',False)"
+                       tal:attributes="value python:getattr(here,'finaliseLabel','Finalise')"
+                       />
                 <input class="standalone"
                        type="reset"
                        name="form.button.cancel"
@@ -247,7 +254,7 @@
 
     <metal:footer_macro define-macro="footer">
     </metal:footer_macro>
-        
+
   </body>
 
 </html>

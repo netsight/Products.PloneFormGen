@@ -137,6 +137,29 @@ FormFolderSchema = ATFolderSchema.copy() + Schema((
             """),
             ),
         ),
+    BooleanField('useFinaliseButton',
+        required=0,
+        searchable=0,
+        default='0',
+        languageIndependent=1,
+        widget=BooleanWidget(label=_(u'label_showfinalise_text',
+                                     default=u'Show Finalise Button'),
+            description=_(u'help_showfinalise_text', default=u"""
+            If enabled, 'required field' validation is only
+            run when this button is clicked (and skipped when the regular
+            'save' button is clicked).
+            """),
+            ),
+        ),
+    StringField('finaliseLabel',
+        required=0,
+        searchable=0,
+        default="Finalise",
+        widget=StringWidget(
+            label=_(u'label_finaliselabel_text', default=u"Finalise Button Label"),
+            description = _(u'help_finaliselabel_text', default=u""),
+            ),
+        ),
     TextField('formPrologue',
         schemata='default',
         required=False,
@@ -584,6 +607,13 @@ class FormFolder(ATFolder):
                 cerr = obj.getFgTValidator(expression_context=context)
                 if cerr:
                     errors[field.getName()] = cerr
+
+        # if we are using the 'finalise' workflow, ignore 'required' errors
+        # unless we clicked the finalise button
+        if self.getUseFinaliseButton() and 'form_finalise' not in REQUEST.form:
+            for field, errormessage in errors.items():
+                if errormessage == 'pfg_isRequired':
+                    del errors[field]
 
         if not skip_action_adapters:
             return self.fgProcessActionAdapters(errors, fields, REQUEST)

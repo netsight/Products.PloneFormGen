@@ -568,6 +568,7 @@ class BaseFormField(ATCTContent):
             'language',
             'form',
             'form_submit',
+            'form_finalise',
             'fieldset',
             'last_referer',
             'add_reference',
@@ -740,7 +741,6 @@ class BaseFormField(ATCTContent):
     def fgvalidate(self, REQUEST=None, errors=None, data=None, metadata=None):
         """Validates the field data from the request.
         """
-
         _marker = []
         if errors is None:
             errors = {}
