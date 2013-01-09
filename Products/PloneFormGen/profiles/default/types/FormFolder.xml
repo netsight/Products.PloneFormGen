@@ -14,7 +14,7 @@
  <property name="global_allow">True</property>
  <property name="filter_content_types">True</property>
  <property name="allowed_content_types" purge="False">
-  <!-- 
+  <!--
     Although we're listing these fields here,
     the real work of setting allowed types
     is done in setuphandlers.py.
@@ -29,6 +29,7 @@
   <element value="FormPasswordField"/>
   <element value="FormFixedPointField"/>
   <element value="FormStringField"/>
+  <element value="FormEncryptedStringField"/>
   <element value="FormTextField"/>
   <element value="FormRichTextField"/>
   <element value="FormRichLabelField"/>

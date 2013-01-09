@@ -1,6 +1,6 @@
 """
     Module initialization code
-    
+
     Used by PloneFormGen/__init__.py
 
 """
@@ -9,3 +9,4 @@ import actionAdapter, saveDataAdapter, formMailerAdapter
 import customScriptAdapter
 import thanksPage
 import likertField, formLikertField
+import encryptedField
