@@ -527,6 +527,12 @@ class BaseFormField(ATCTContent):
             self.fgField.required = value == '1' or value == 'True'
 
 
+    security.declareProtected(View, 'getValue')
+    def getValue(self, REQUEST):
+        """ get the current value for this field from the request """
+        if REQUEST is not None:
+            return REQUEST.get(self.getId())
+
     security.declareProtected(View, 'getRequired')
     def getRequired(self, **kw):
         """ get required flag for field """
