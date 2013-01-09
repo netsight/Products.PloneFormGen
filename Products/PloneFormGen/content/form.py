@@ -42,6 +42,8 @@ from Products.PloneFormGen.config import \
     PROJECTNAME, \
     EDIT_TALES_PERMISSION, EDIT_ADVANCED_PERMISSION, BAD_IDS
 from Products.PloneFormGen.content import validationMessages
+from Products.PloneFormGen.content.encryptedField import FGEncryptedStringField
+from Products.PloneFormGen.content.encryptedField import ENCRYPTED_VALUE_MARKER
 
 from Products.PloneFormGen import PloneFormGenMessageFactory as _
 from Products.PloneFormGen import implementedOrProvidedBy
@@ -771,6 +773,9 @@ class FormFolder(ATFolder):
                 if isinstance(value, unicode):
                     # pfg doesn't want unicode, thanks
                     value = value.encode('utf-8')
+                if isinstance(field, FGEncryptedStringField):
+                    # replace with marker
+                    value = ENCRYPTED_VALUE_MARKER
                 return value
 
     security.declareProtected(View, 'fgGetSuccessAction')
