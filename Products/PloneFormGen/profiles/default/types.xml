@@ -40,6 +40,8 @@
     meta_type="Factory-based Type Information with dynamic views"/>
  <object name="FormStringField"
     meta_type="Factory-based Type Information with dynamic views"/>
+ <object name="FormEncryptedStringField"
+    meta_type="Factory-based Type Information with dynamic views"/>
  <object name="FormTextField"
     meta_type="Factory-based Type Information with dynamic views"/>
  <object name="FormThanksPage"

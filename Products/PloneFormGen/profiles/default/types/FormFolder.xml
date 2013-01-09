@@ -29,6 +29,7 @@
   <element value="FormPasswordField"/>
   <element value="FormFixedPointField"/>
   <element value="FormStringField"/>
+  <element value="FormEncryptedStringField"/>
   <element value="FormTextField"/>
   <element value="FormRichTextField"/>
   <element value="FormRichLabelField"/>
