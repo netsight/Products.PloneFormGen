@@ -127,6 +127,7 @@ FormFolderSchema = ATFolderSchema.copy() + Schema((
             ),
         ),
     BooleanField('allowEditPrevious',
+        schemata="Edit and Finalise",
         required=False,
         default=False,
         widget=BooleanWidget(
@@ -140,6 +141,7 @@ FormFolderSchema = ATFolderSchema.copy() + Schema((
             ),
         ),
     BooleanField('useFinaliseButton',
+        schemata="Edit and Finalise",
         required=0,
         searchable=0,
         default='0',
@@ -147,6 +149,7 @@ FormFolderSchema = ATFolderSchema.copy() + Schema((
         widget=BooleanWidget(label=_(u'label_showfinalise_text',
                                      default=u'Show Finalise Button'),
             description=_(u'help_showfinalise_text', default=u"""
+            Use this to enabled the 'finalise' workflow.
             If enabled, 'required field' validation is only
             run when this button is clicked (and skipped when the regular
             'save' button is clicked).
@@ -154,12 +157,32 @@ FormFolderSchema = ATFolderSchema.copy() + Schema((
             ),
         ),
     StringField('finaliseLabel',
+        schemata="Edit and Finalise",
         required=0,
         searchable=0,
         default="Finalise",
         widget=StringWidget(
             label=_(u'label_finaliselabel_text', default=u"Finalise Button Label"),
             description = _(u'help_finaliselabel_text', default=u""),
+            ),
+        ),
+    TextField('finalisedText',
+        schemata="Edit and Finalise",
+        required=False,
+        # Disable search to bypass a unicode decode error
+        # in portal_catalog indexes.
+        searchable=False,
+        primary=False,
+        validators = ('isTidyHtmlWithCleanup', ),
+        default_content_type = zconf.ATDocument.default_content_type,
+        default_output_type = 'text/x-html-safe',
+        allowable_content_types = zconf.ATDocument.allowed_content_types,
+        widget = RichWidget(
+            label = _(u'label_finalised_text', default=u"Form Finalised text"),
+            description = _(u'help_finalised_text',
+                            default=u"The text will be shown in place of the form fields once the user has finalised their submission."),
+            rows = 8,
+            allow_file_upload = zconf.ATDocument.allow_document_upload,
             ),
         ),
     TextField('formPrologue',
@@ -196,25 +219,6 @@ FormFolderSchema = ATFolderSchema.copy() + Schema((
             label = _(u'label_epilogue_text', default=u"Form Epilogue"),
             description = _(u'help_epilogue_text',
                 default=u"The text will be displayed after the form fields."),
-            rows = 8,
-            allow_file_upload = zconf.ATDocument.allow_document_upload,
-            ),
-        ),
-    TextField('finalisedText',
-        schemata='default',
-        required=False,
-        # Disable search to bypass a unicode decode error
-        # in portal_catalog indexes.
-        searchable=False,
-        primary=False,
-        validators = ('isTidyHtmlWithCleanup', ),
-        default_content_type = zconf.ATDocument.default_content_type,
-        default_output_type = 'text/x-html-safe',
-        allowable_content_types = zconf.ATDocument.allowed_content_types,
-        widget = RichWidget(
-            label = _(u'label_finalised_text', default=u"Form Finalised text"),
-            description = _(u'help_finalised_text',
-                            default=u"The text will be shown in place of the form fields once the user has finalised their submission."),
             rows = 8,
             allow_file_upload = zconf.ATDocument.allow_document_upload,
             ),
@@ -773,7 +777,7 @@ class FormFolder(ATFolder):
                 if isinstance(value, unicode):
                     # pfg doesn't want unicode, thanks
                     value = value.encode('utf-8')
-                if isinstance(field, FGEncryptedStringField):
+                if value and isinstance(field, FGEncryptedStringField):
                     # replace with marker
                     value = ENCRYPTED_VALUE_MARKER
                 return value
