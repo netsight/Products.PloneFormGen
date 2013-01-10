@@ -67,6 +67,9 @@ class FGEncryptedStringField(FGStringField):
             return None
 
         value = REQUEST.get(self.getId())
+        if not value:
+            return value
+
         if value == ENCRYPTED_VALUE_MARKER:
             return None
 
