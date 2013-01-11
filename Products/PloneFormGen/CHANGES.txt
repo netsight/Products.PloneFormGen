@@ -1,6 +1,12 @@
 Change History
 ==============
 
+1.8.1dev 2013-01-11
+----------------
+
+- Added new 'finalise' workflow to submit final version of a form
+- Encrypted String field for GPG encrypted values (requires action adapter support)
+
 1.8dev 2012-12-20
 ----------------
 
