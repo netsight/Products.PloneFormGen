@@ -4,7 +4,8 @@ Change History
 
 1.7.10 (unreleased)
 -------------------
-
+- Added new 'finalise' workflow to submit final version of a form
+- Encrypted String field for GPG encrypted values (requires action adapter support)
 - Support for editing previous submission values (via 'Stateful' adapters)
 
 
