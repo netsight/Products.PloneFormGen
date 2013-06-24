@@ -2,7 +2,7 @@ Change History
 ==============
 
 
-1.7.10 (unreleased)
+1.8.2 (unreleased)
 -------------------
 - Added new 'finalise' workflow to submit final version of a form
 - Encrypted String field for GPG encrypted values (requires action adapter support)
