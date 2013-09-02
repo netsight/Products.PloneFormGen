@@ -773,6 +773,16 @@ class FormFolder(ATFolder):
                 continue
             return True
 
+    security.declareProtected(View, 'checkUserKey')
+    def checkUserKey(self, userkey):
+        """ require the 'modify' permission to access
+            data for userkeys other than your own """
+        if userkey == self.getUserKey():
+            return
+        sm = getSecurityManager()
+        if not sm.checkPermission(ModifyPortalContent, self):
+            raise Unauthorized("You do not have permission to access this form data")
+
     security.declareProtected(View, 'hasExistingValues')
     def hasExistingValues(self):
         """ has the current user previously submitted this form? """
@@ -786,8 +796,14 @@ class FormFolder(ATFolder):
             return statefulAdapter.hasExistingValuesFor(self.getUserKey())
 
     security.declareProtected(View, 'getExistingValue')
-    def getExistingValue(self, field):
+    def getExistingValue(self, field, userkey=None):
         """ get a previous submission value for the given field """
+        if userkey is None:
+            userkey = self.getUserKey()
+        else:
+            # permissions check
+            self.checkUserKey(userkey)
+
         for adapterId in self.getRawActionAdapter():
             actionAdapter = getattr(self.aq_explicit, adapterId, None)
             try:
