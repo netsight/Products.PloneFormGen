@@ -813,7 +813,7 @@ class FormFolder(ATFolder):
                 continue
             value = statefulAdapter.getExistingValueFor(
                 field,
-                self.getUserKey(),
+                userkey,
             )
             if value is not None:
                 if isinstance(value, unicode):
