@@ -759,6 +759,20 @@ class FormFolder(ATFolder):
                                    expires='Wed, 19 Feb 2040 14:28:00 GMT')
         return uniqueid
 
+    security.declareProtected(ModifyPortalContent, 'hasStatefulActionAdapter')
+    def hasStatefulActionAdapter(self):
+        """ does this form have any stateful action adapters
+        associated with it?
+        """
+        for adapterId in self.getRawActionAdapter():
+            actionAdapter = getattr(self.aq_explicit, adapterId, None)
+            try:
+                IStatefulActionAdapter(actionAdapter)
+            except TypeError:
+                # does not support state
+                continue
+            return True
+
     security.declareProtected(View, 'hasExistingValues')
     def hasExistingValues(self):
         """ has the current user previously submitted this form? """
