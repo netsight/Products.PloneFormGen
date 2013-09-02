@@ -723,11 +723,18 @@ class FormFolder(ATFolder):
         return self.getUseFinaliseButton()
 
     security.declareProtected(View, 'isFormFinalised')
-    def isFormFinalised(self):
+    def isFormFinalised(self, userkey=None):
         """ has the current user's submission been finalised
         (and therefore no longer editable) """
         if not self.useFinaliseWorkflow():
             return False
+
+        if userkey is None:
+            userkey = self.getUserKey()
+        else:
+            # permissions check
+            self.checkUserKey(userkey)
+
         # ask the stateful adapters
         for adapterId in self.getRawActionAdapter():
             actionAdapter = getattr(self.aq_explicit, adapterId, None)
@@ -736,7 +743,7 @@ class FormFolder(ATFolder):
             except TypeError:
                 # does not support state
                 continue
-            return statefulAdapter.isFinalised(self.getUserKey())
+            return statefulAdapter.isFinalised(userkey)
 
     security.declareProtected(View, 'getUserKey')
     def getUserKey(self):
@@ -784,8 +791,14 @@ class FormFolder(ATFolder):
             raise Unauthorized("You do not have permission to access this form data")
 
     security.declareProtected(View, 'hasExistingValues')
-    def hasExistingValues(self):
+    def hasExistingValues(self, userkey):
         """ has the current user previously submitted this form? """
+        if userkey is None:
+            userkey = self.getUserKey()
+        else:
+            # permissions check
+            self.checkUserKey(userkey)
+
         for adapterId in self.getRawActionAdapter():
             actionAdapter = getattr(self.aq_explicit, adapterId, None)
             try:
@@ -793,7 +806,7 @@ class FormFolder(ATFolder):
             except TypeError:
                 # does not support state
                 continue
-            return statefulAdapter.hasExistingValuesFor(self.getUserKey())
+            return statefulAdapter.hasExistingValuesFor(userkey)
 
     security.declareProtected(View, 'getExistingValue')
     def getExistingValue(self, field, userkey=None):
