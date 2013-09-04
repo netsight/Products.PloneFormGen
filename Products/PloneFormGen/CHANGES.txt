@@ -2,12 +2,15 @@ Change History
 ==============
 
 
-1.8.2 (unreleased)
+1.8.3dev (2013-09-04)
+-------------------
+- Support for viewing previous submission values for other users
+
+1.8.2dev (2013-06-24)
 -------------------
 - Added new 'finalise' workflow to submit final version of a form
 - Encrypted String field for GPG encrypted values (requires action adapter support)
 - Support for editing previous submission values (via 'Stateful' adapters)
-
 
 1.7.9 (2013-05-29)
 ------------------
