@@ -809,8 +809,10 @@ class FormFolder(ATFolder):
             return statefulAdapter.hasExistingValuesFor(userkey)
 
     security.declareProtected(View, 'getExistingValue')
-    def getExistingValue(self, field, userkey=None):
-        """ get a previous submission value for the given field """
+    def getExistingValue(self, field, userkey=None, raw=False):
+        """ get a previous submission value for the given field
+        raw - set to False to skip post-processing of values
+        """
         if userkey is None:
             userkey = self.getUserKey()
         else:
@@ -828,7 +830,9 @@ class FormFolder(ATFolder):
                 field,
                 userkey,
             )
-            if value is not None:
+            if raw:
+                return value
+            elif value is not None:
                 if isinstance(value, unicode):
                     # pfg doesn't want unicode, thanks
                     value = value.encode('utf-8')
