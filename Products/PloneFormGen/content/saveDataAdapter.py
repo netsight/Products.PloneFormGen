@@ -277,7 +277,7 @@ class FormSaveDataAdapter(FormActionAdapter):
         if not sm.checkPermission(DOWNLOAD_SAVED_PERMISSION, self):
             raise Unauthorized("You do not have permission to download this form data")
 
-    security.declareProtected(View, 'isFormFinalised')
+    security.declareProtected(View, 'isFinalised')
     def isFinalised(self, userkey):
         # To be implemented
         return False
