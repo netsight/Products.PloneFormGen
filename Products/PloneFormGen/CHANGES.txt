@@ -1,6 +1,9 @@
 Change History
 ==============
 
+1.8.4dev (2013-09-05)
+-------------------
+- Fixed bug with missing default argument for hasExistingValues
 
 1.8.3dev (2013-09-04)
 -------------------
