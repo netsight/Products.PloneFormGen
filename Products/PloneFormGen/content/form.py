@@ -791,7 +791,7 @@ class FormFolder(ATFolder):
             raise Unauthorized("You do not have permission to access this form data")
 
     security.declareProtected(View, 'hasExistingValues')
-    def hasExistingValues(self, userkey):
+    def hasExistingValues(self, userkey=None):
         """ has the current user previously submitted this form? """
         if userkey is None:
             userkey = self.getUserKey()
